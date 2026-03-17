@@ -58,15 +58,17 @@ class TaskProvider with ChangeNotifier {
     required String title,
     required String description,
     required DateTime date,
+    String? url,
   }) async {
     final normalizedId = userId.toLowerCase();
     try {
       final newTask = Task(
-        id: Uuid().v4(),
-        userId: normalizedId,
+        id: const Uuid().v4(),
+        userId: userId.toLowerCase(),
         title: title,
         description: description,
         date: date,
+        url: url,
         avatars: [],
       );
       _tasks.add(newTask);

@@ -6,6 +6,7 @@ import '../app_theme.dart';
 import '../providers/task_provider.dart';
 import '../models/task_model.dart';
 import 'profile_screen.dart';
+import '../widgets/add_task_bottom_sheet.dart';
 
 class ProgressScreen extends StatefulWidget {
   const ProgressScreen({super.key});
@@ -63,6 +64,15 @@ class _ProgressScreenState extends State<ProgressScreen> {
                       }),
                       Row(
                         children: [
+                          _buildIconButton(Icons.link_rounded, theme, onTap: () {
+                            showModalBottomSheet(
+                              context: context,
+                              isScrollControlled: true,
+                              backgroundColor: Colors.transparent,
+                              builder: (context) => const AddTaskBottomSheet(isUrlTask: true),
+                            );
+                          }),
+                          const SizedBox(width: 8),
                           _buildIconButton(Icons.settings_outlined, theme, onTap: () {
                             Navigator.push(context, MaterialPageRoute(builder: (context) => const ProfileScreen()));
                           }),

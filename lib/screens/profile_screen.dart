@@ -7,6 +7,8 @@ import '../providers/theme_provider.dart';
 import '../providers/task_provider.dart';
 import 'login_screen.dart';
 import '../services/notification_service.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -147,6 +149,32 @@ class ProfileScreen extends StatelessWidget {
                   label: 'Password',
                   value: isGoogleUser ? 'Managed by Google' : '••••••••',
                 ),
+                const SizedBox(height: 10),
+                _buildDetailTile(
+                  context,
+                  icon: Icons.language_rounded,
+                  label: 'Personal Website',
+                  value: user?.website ?? 'Not set',
+                  trailing: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      if (user?.website != null && user!.website!.isNotEmpty)
+                        IconButton(
+                          icon: Icon(Icons.open_in_new_rounded, size: 20, color: theme.primaryColor),
+                          onPressed: () async {
+                            final uri = Uri.parse(user.website!);
+                            if (await canLaunchUrl(uri)) {
+                              await launchUrl(uri);
+                            }
+                          },
+                        ),
+                      IconButton(
+                        icon: Icon(Icons.edit_note_rounded, size: 22, color: theme.primaryColor),
+                        onPressed: () => _showWebsiteDialog(context, userProvider),
+                      ),
+                    ],
+                  ),
+                ),
 
                 const SizedBox(height: 28),
 
@@ -170,41 +198,70 @@ class ProfileScreen extends StatelessWidget {
                   },
                 ),
                 const SizedBox(height: 10),
+                _buildSettingsTile(
+                  context,
+                  Icons.restart_alt_rounded, 
+                  'Reset Onboarding', 
+                  'Show the Get Started screen again',
+                  onTap: () async {
+                    final prefs = await SharedPreferences.getInstance();
+                    await prefs.remove('hasSeenGetStarted');
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Onboarding reset! Restart the app to see the Get Started screen.')),
+                      );
+                    }
+                  }
+                ),
+                const SizedBox(height: 10),
                 FutureBuilder<bool>(
                   future: NotificationService().checkPermissionStatus(),
                   builder: (context, snapshot) {
                     final bool isEnabled = snapshot.data ?? true;
-                    return _buildSettingsTile(
-                      context,
-                      Icons.notifications_none_rounded, 
-                      'Notifications', 
-                      isEnabled ? 'Manage alerts' : 'Alerts are disabled',
-                      trailing: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                        decoration: BoxDecoration(
-                          color: isEnabled ? Colors.green.withValues(alpha: 0.1) : Colors.red.withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Text(
-                          isEnabled ? 'Active' : 'Missing',
-                          style: TextStyle(
-                            color: isEnabled ? Colors.green : Colors.redAccent,
-                            fontSize: 10,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                      onTap: () async {
-                        await NotificationService().requestPermissions();
-                        if (context.mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('Checking notification permissions...'),
-                              duration: Duration(seconds: 2),
+                    return Column(
+                      children: [
+                        _buildSettingsTile(
+                          context,
+                          Icons.notifications_none_rounded, 
+                          'Notifications', 
+                          isEnabled ? 'Manage alerts' : 'Alerts are disabled',
+                          trailing: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: isEnabled ? Colors.green.withValues(alpha: 0.1) : Colors.red.withValues(alpha: 0.1),
+                              borderRadius: BorderRadius.circular(8),
                             ),
-                          );
-                        }
-                      }
+                            child: Text(
+                              isEnabled ? 'Active' : 'Missing',
+                              style: TextStyle(
+                                color: isEnabled ? Colors.green : Colors.redAccent,
+                                fontSize: 10,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                          onTap: () async {
+                            await NotificationService().requestPermissions();
+                          }
+                        ),
+                        if (isEnabled)
+                          Padding(
+                            padding: const EdgeInsets.only(top: 8, left: 16, right: 16),
+                            child: TextButton.icon(
+                              onPressed: () async {
+                                await NotificationService().testImmediateNotification();
+                              },
+                              icon: const Icon(Icons.send_rounded, size: 16),
+                              label: const Text('Send Test Notification', style: TextStyle(fontSize: 12)),
+                              style: TextButton.styleFrom(
+                                foregroundColor: theme.primaryColor,
+                                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                                backgroundColor: theme.primaryColor.withValues(alpha: 0.05),
+                              ),
+                            ),
+                          ),
+                      ],
                     );
                   }
                 ),
@@ -337,6 +394,56 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
+  void _showWebsiteDialog(BuildContext context, UserProvider provider) {
+    final TextEditingController controller = TextEditingController(text: provider.currentUser?.website);
+    final theme = Theme.of(context);
+    
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: theme.colorScheme.surface,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Text('Personal Website', style: TextStyle(color: theme.textTheme.titleLarge?.color, fontWeight: FontWeight.bold)),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text('Enter your website URL (including https://)', style: TextStyle(color: theme.textTheme.bodyMedium?.color, fontSize: 13)),
+            const SizedBox(height: 16),
+            TextField(
+              controller: controller,
+              autofocus: true,
+              style: TextStyle(color: theme.textTheme.bodyLarge?.color),
+              decoration: InputDecoration(
+                hintText: 'https://yourname.com',
+                filled: true,
+                fillColor: theme.primaryColor.withValues(alpha: 0.05),
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx), child: Text('Cancel', style: TextStyle(color: theme.textTheme.bodyMedium?.color))),
+          ElevatedButton(
+            onPressed: () async {
+              String url = controller.text.trim();
+              if (url.isNotEmpty && !url.contains('://')) {
+                url = 'https://$url';
+              }
+              await provider.updateWebsite(url);
+              if (context.mounted) Navigator.pop(ctx);
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: theme.primaryColor,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            ),
+            child: const Text('Save', style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildSectionHeader(BuildContext context, String title) {
     final theme = Theme.of(context);
     return Row(
@@ -348,7 +455,7 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildDetailTile(BuildContext context, {required IconData icon, required String label, required String value, String? onCopy}) {
+  Widget _buildDetailTile(BuildContext context, {required IconData icon, required String label, required String value, String? onCopy, Widget? trailing}) {
     final theme = Theme.of(context);
     return Container(
       padding: const EdgeInsets.all(16),
@@ -388,6 +495,10 @@ class ProfileScreen extends StatelessWidget {
               },
               child: Icon(Icons.copy_rounded, color: theme.textTheme.bodyMedium?.color, size: 18),
             ),
+          if (trailing != null) ...[
+            const SizedBox(width: 8),
+            trailing,
+          ],
         ],
       ),
     );

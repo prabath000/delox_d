@@ -8,7 +8,8 @@ import '../services/notification_service.dart';
 
 class AddTaskBottomSheet extends StatefulWidget {
   final Task? taskToEdit;
-  const AddTaskBottomSheet({super.key, this.taskToEdit});
+  final bool isUrlTask;
+  const AddTaskBottomSheet({super.key, this.taskToEdit, this.isUrlTask = false});
 
   @override
   State<AddTaskBottomSheet> createState() => _AddTaskBottomSheetState();
@@ -17,6 +18,7 @@ class AddTaskBottomSheet extends StatefulWidget {
 class _AddTaskBottomSheetState extends State<AddTaskBottomSheet> {
   final TextEditingController _titleController = TextEditingController();
   final TextEditingController _descController = TextEditingController();
+  final TextEditingController _urlController = TextEditingController();
   DateTime _selectedDate = DateTime.now();
   TimeOfDay _selectedTime = TimeOfDay.now();
 
@@ -26,6 +28,7 @@ class _AddTaskBottomSheetState extends State<AddTaskBottomSheet> {
     if (widget.taskToEdit != null) {
       _titleController.text = widget.taskToEdit!.title;
       _descController.text = widget.taskToEdit!.description;
+      _urlController.text = widget.taskToEdit!.url ?? '';
       _selectedDate = widget.taskToEdit!.date;
       _selectedTime = TimeOfDay.fromDateTime(widget.taskToEdit!.date);
     }
@@ -125,6 +128,15 @@ class _AddTaskBottomSheetState extends State<AddTaskBottomSheet> {
             maxLines: 2,
           ),
           const SizedBox(height: 20),
+          Text('Web URL (Optional)', style: TextStyle(fontWeight: FontWeight.bold, color: theme.textTheme.bodyMedium?.color)),
+          const SizedBox(height: 8),
+          TextField(
+            controller: _urlController,
+            autofocus: widget.isUrlTask,
+            style: TextStyle(color: theme.textTheme.bodyLarge?.color),
+            decoration: const InputDecoration(hintText: 'https://example.com'),
+          ),
+          const SizedBox(height: 20),
           Text('Schedule', style: TextStyle(fontWeight: FontWeight.bold, color: theme.textTheme.bodyMedium?.color)),
           const SizedBox(height: 12),
           Row(
@@ -161,6 +173,7 @@ class _AddTaskBottomSheetState extends State<AddTaskBottomSheet> {
                     userId: widget.taskToEdit!.userId,
                     title: _titleController.text,
                     description: _descController.text,
+                    url: _urlController.text.trim().isEmpty ? null : _urlController.text.trim(),
                     date: combinedDateTime,
                     progress: widget.taskToEdit!.progress,
                     avatars: widget.taskToEdit!.avatars,
@@ -182,6 +195,7 @@ class _AddTaskBottomSheetState extends State<AddTaskBottomSheet> {
                     title: _titleController.text,
                     description: _descController.text,
                     date: combinedDateTime,
+                    url: _urlController.text.trim().isEmpty ? null : _urlController.text.trim(),
                   );
                   if (newTask != null) {
                     try {

@@ -3,6 +3,7 @@ class Task {
   final String userId;
   final String title;
   final String description;
+  final String? url;
   final double progress;
   final List<String> avatars;
   final DateTime date;
@@ -13,6 +14,7 @@ class Task {
     required this.userId,
     required this.title,
     required this.description,
+    this.url,
     this.progress = 0.0,
     this.avatars = const [],
     required this.date,
@@ -25,6 +27,7 @@ class Task {
       'userId': userId,
       'title': title,
       'description': description,
+      'url': url,
       'progress': progress,
       'date': date.toIso8601String(),
       'isCompleted': isCompleted ? 1 : 0,
@@ -37,6 +40,7 @@ class Task {
       userId: map['userId'] ?? 'guest',
       title: map['title'],
       description: map['description'],
+      url: map['url'],
       progress: (map['progress'] as num).toDouble(),
       date: DateTime.parse(map['date']),
       isCompleted: map['isCompleted'] == 1,

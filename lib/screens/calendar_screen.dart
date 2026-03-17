@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:intl/intl.dart';
 import 'package:table_calendar/table_calendar.dart';
 import '../app_theme.dart';
@@ -62,6 +63,15 @@ class _CalendarScreenState extends State<CalendarScreen> {
                   }),
                   Row(
                     children: [
+                      _buildIconButton(Icons.link_rounded, theme, onTap: () {
+                        showModalBottomSheet(
+                          context: context,
+                          isScrollControlled: true,
+                          backgroundColor: Colors.transparent,
+                          builder: (context) => const AddTaskBottomSheet(isUrlTask: true),
+                        );
+                      }),
+                      const SizedBox(width: 8),
                       _buildIconButton(Icons.settings_outlined, theme, onTap: () {
                         Navigator.push(context, MaterialPageRoute(builder: (context) => const ProfileScreen()));
                       }),
@@ -251,6 +261,22 @@ class _CalendarScreenState extends State<CalendarScreen> {
               ),
               Row(
                 children: [
+                  if (task.url != null && task.url!.isNotEmpty)
+                    IconButton(
+                      icon: const Icon(Icons.link, color: AppColors.indigo, size: 20),
+                      onPressed: () async {
+                        final uri = Uri.parse(task.url!);
+                        try {
+                          // ignore: deprecated_member_use
+                          if (await canLaunchUrl(uri)) {
+                            // ignore: deprecated_member_use
+                            await launchUrl(uri);
+                          }
+                        } catch (e) {
+                          debugPrint('Could not launch ${task.url}: $e');
+                        }
+                      },
+                    ),
                   Checkbox(
                     value: task.isCompleted,
                     activeColor: AppColors.indigo,

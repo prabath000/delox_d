@@ -20,7 +20,7 @@ class DatabaseService {
 
     return await openDatabase(
       path,
-      version: 4,
+      version: 7,
       onCreate: _createDB,
       onUpgrade: _onUpgrade,
     );
@@ -40,11 +40,31 @@ class DatabaseService {
       ''');
     }
     if (oldVersion < 4) {
-      // Add photoUrl column for existing users
       try {
         await db.execute('ALTER TABLE users ADD COLUMN photoUrl TEXT');
       } catch (e) {
         // Column might already exist if they downgraded/upgraded weirdly, ignore
+      }
+    }
+    if (oldVersion < 5) {
+      try {
+        await db.execute('ALTER TABLE tasks ADD COLUMN url TEXT');
+      } catch (e) {
+        // Column might already exist
+      }
+    }
+    if (oldVersion < 6) {
+      try {
+        await db.execute('ALTER TABLE users ADD COLUMN website TEXT');
+      } catch (e) {
+        // Column might already exist
+      }
+    }
+    if (oldVersion < 7) {
+      try {
+        await db.execute('ALTER TABLE users ADD COLUMN website TEXT');
+      } catch (e) {
+        // Column might already exist
       }
     }
   }
@@ -55,7 +75,8 @@ class DatabaseService {
         email TEXT PRIMARY KEY,
         name TEXT NOT NULL,
         password TEXT NOT NULL,
-        photoUrl TEXT
+        photoUrl TEXT,
+        website TEXT
       )
     ''');
     await db.execute('''
@@ -66,7 +87,8 @@ class DatabaseService {
         description TEXT NOT NULL,
         progress REAL NOT NULL,
         date TEXT NOT NULL,
-        isCompleted INTEGER NOT NULL
+        isCompleted INTEGER NOT NULL,
+        url TEXT
       )
     ''');
   }

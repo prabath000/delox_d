@@ -8,6 +8,8 @@ import 'providers/task_provider.dart';
 import 'providers/user_provider.dart';
 
 import 'providers/theme_provider.dart';
+import 'screens/get_started_screen.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -45,17 +47,36 @@ class MyApp extends StatelessWidget {
           theme: AppTheme.lightTheme,
           darkTheme: AppTheme.darkTheme,
           themeMode: themeProvider.themeMode,
-          home: Consumer<UserProvider>(
-            builder: (context, userProvider, child) {
-              if (userProvider.isAuthenticated) {
-                return const MainScaffold();
-              } else {
-                return const LoginScreen();
+          home: FutureBuilder<bool>(
+            future: _checkFirstLaunch(),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Scaffold(body: Center(child: CircularProgressIndicator()));
               }
+              
+              final bool hasSeenGetStarted = snapshot.data ?? false;
+              if (!hasSeenGetStarted) {
+                return const GetStartedScreen();
+              }
+
+              return Consumer<UserProvider>(
+                builder: (context, userProvider, child) {
+                  if (userProvider.isAuthenticated) {
+                    return const MainScaffold();
+                  } else {
+                    return const LoginScreen();
+                  }
+                },
+              );
             },
           ),
         );
       },
     );
+  }
+
+  Future<bool> _checkFirstLaunch() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getBool('hasSeenGetStarted') ?? false;
   }
 }

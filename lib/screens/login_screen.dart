@@ -51,7 +51,22 @@ class _LoginScreenState extends State<LoginScreen> {
                   child: Icon(Icons.arrow_back_ios_new_rounded, color: theme.primaryColor, size: 20),
                 ),
               ),
-              const SizedBox(height: 30),
+              const SizedBox(height: 20),
+              // Logo
+              Hero(
+                tag: 'app_logo',
+                child: Container(
+                  margin: const EdgeInsets.only(bottom: 16),
+                  child: Image.asset(
+                    'assets/images/logo.png',
+                    height: 50,
+                    fit: BoxFit.contain,
+                    errorBuilder: (context, error, stackTrace) {
+                       return Icon(Icons.rocket_launch_rounded, size: 40, color: theme.primaryColor);
+                    },
+                  ),
+                ),
+              ),
               Text(
                 'DELOX',
                 style: theme.textTheme.titleSmall?.copyWith(

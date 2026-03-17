@@ -8,14 +8,22 @@ class User {
   final String email;
   final String password;
   final String? photoUrl;
+  final String? website;
 
-  User({required this.name, required this.email, required this.password, this.photoUrl});
+  User({
+    required this.name, 
+    required this.email, 
+    required this.password, 
+    this.photoUrl,
+    this.website,
+  });
 
   Map<String, dynamic> toMap() => {
     'name': name,
     'email': email,
     'password': password,
     'photoUrl': photoUrl,
+    'website': website,
   };
 
   factory User.fromMap(Map<String, dynamic> map) => User(
@@ -23,6 +31,7 @@ class User {
     email: map['email'],
     password: map['password'],
     photoUrl: map['photoUrl'],
+    website: map['website'],
   );
 }
 
@@ -53,6 +62,7 @@ class UserProvider with ChangeNotifier {
           email: user.email,
           password: user.password,
           photoUrl: savedPhoto ?? user.photoUrl,
+          website: user.website,
         );
         notifyListeners();
         debugPrint('Session restored for: $normalizedEmail');
@@ -166,13 +176,23 @@ class UserProvider with ChangeNotifier {
       debugPrint('Google Sign-Out Error: $e');
     }
     
-    // Clear session
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.remove(_userEmailKey);
-    await prefs.remove(_userPhotoKey);
-    await prefs.remove(_userNameKey);
-
     _currentUser = null;
+    notifyListeners();
+  }
+
+  Future<void> updateWebsite(String url) async {
+    if (_currentUser == null) return;
+    
+    final updatedUser = User(
+      name: _currentUser!.name,
+      email: _currentUser!.email,
+      password: _currentUser!.password,
+      photoUrl: _currentUser!.photoUrl,
+      website: url,
+    );
+    
+    await DatabaseService.instance.insertUser(updatedUser.toMap());
+    _currentUser = updatedUser;
     notifyListeners();
   }
 }

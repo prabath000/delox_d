@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:intl/intl.dart';
 import '../app_theme.dart';
 import '../models/task_model.dart';
@@ -71,6 +72,15 @@ class HomeScreen extends StatelessWidget {
                         ),
                         Row(
                           children: [
+                            _buildIconButton(Icons.link_rounded, theme, onTap: () {
+                              showModalBottomSheet(
+                                context: context,
+                                isScrollControlled: true,
+                                backgroundColor: Colors.transparent,
+                                builder: (context) => const AddTaskBottomSheet(isUrlTask: true),
+                              );
+                            }),
+                            const SizedBox(width: 8),
                             _buildIconButton(Icons.settings_outlined, theme, onTap: () {
                               Navigator.push(context, MaterialPageRoute(builder: (context) => const ProfileScreen()));
                             }),
@@ -250,6 +260,25 @@ class HomeScreen extends StatelessWidget {
               ],
             ),
           ),
+          if (task.url != null && task.url!.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.only(left: 8),
+              child: IconButton(
+                icon: const Icon(Icons.link, color: AppColors.indigo, size: 20),
+                onPressed: () async {
+                  final uri = Uri.parse(task.url!);
+                  try {
+                    // ignore: deprecated_member_use
+                    if (await canLaunchUrl(uri)) {
+                      // ignore: deprecated_member_use
+                      await launchUrl(uri);
+                    }
+                  } catch (e) {
+                    debugPrint('Could not launch ${task.url}: $e');
+                  }
+                },
+              ),
+            ),
           PopupMenuButton<String>(
             icon: Container(
               padding: const EdgeInsets.all(8),

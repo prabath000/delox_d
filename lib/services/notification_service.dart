@@ -17,16 +17,25 @@ class NotificationService {
     if (_initialized) return;
     try {
       tz_data.initializeTimeZones();
-      final currentTimeZone = await FlutterTimezone.getLocalTimezone();
-      tz.setLocalLocation(tz.getLocation(currentTimeZone.toString()));
-    } catch (e) {
-      debugPrint('Notification Service Timezone Error: $e');
+      String? currentTimeZone;
       try {
-        tz_data.initializeTimeZones();
-        tz.setLocalLocation(tz.getLocation('UTC'));
-      } catch (inner) {
-        debugPrint('Notification Service Fatal Timezone Error: $inner');
+        final result = await FlutterTimezone.getLocalTimezone();
+        currentTimeZone = result.toString();
+      } catch (e) {
+        debugPrint('FlutterTimezone failed, trying manual detection: $e');
       }
+      
+      // Fallback for India if detection fails (very common)
+      currentTimeZone ??= 'Asia/Kolkata'; 
+      
+      try {
+        tz.setLocalLocation(tz.getLocation(currentTimeZone));
+      } catch (e) {
+        debugPrint('Location $currentTimeZone not found, falling back to UTC');
+        tz.setLocalLocation(tz.getLocation('UTC'));
+      }
+    } catch (e) {
+      debugPrint('Notification Service Fatal Timezone Error: $e');
     }
     
     const AndroidInitializationSettings androidSettings = 
@@ -53,36 +62,35 @@ class NotificationService {
   }
 
   Future<bool> checkPermissionStatus() async {
-    final AndroidFlutterLocalNotificationsPlugin? androidImplementation =
+    // For iOS, check permission status
+    final IOSFlutterLocalNotificationsPlugin? iosImplementation =
         _notificationsPlugin.resolvePlatformSpecificImplementation<
-            AndroidFlutterLocalNotificationsPlugin>();
+            IOSFlutterLocalNotificationsPlugin>();
     
-    if (androidImplementation != null) {
-      final bool? notificationsEnabled = await androidImplementation.areNotificationsEnabled();
-      // On Android 13+, we should also check for exact alarm if possible,
-      // but areNotificationsEnabled is the primary driver.
-      return notificationsEnabled ?? false;
+    if (iosImplementation != null) {
+      final bool? granted = await iosImplementation.requestPermissions(
+        alert: true,
+        badge: true,
+        sound: true,
+      );
+      return granted ?? false;
     }
     
-    // For iOS, we can check basic permissions if needed, 
-    // but for now focusing on Android reliability.
     return true; 
   }
 
   Future<void> requestPermissions() async {
-    final AndroidFlutterLocalNotificationsPlugin? androidImplementation =
+    // Request iOS permissions
+    final IOSFlutterLocalNotificationsPlugin? iosImplementation =
         _notificationsPlugin.resolvePlatformSpecificImplementation<
-            AndroidFlutterLocalNotificationsPlugin>();
+            IOSFlutterLocalNotificationsPlugin>();
     
-    if (androidImplementation != null) {
-      await androidImplementation.requestNotificationsPermission();
-      try {
-        // This will open the system settings for exact alarms if not granted
-        // on some Android versions.
-        await androidImplementation.requestExactAlarmsPermission();
-      } catch (e) {
-        debugPrint('Exact alarm permission request not supported or failed: $e');
-      }
+    if (iosImplementation != null) {
+      await iosImplementation.requestPermissions(
+        alert: true,
+        badge: true,
+        sound: true,
+      );
     }
   }
 
@@ -116,6 +124,14 @@ class NotificationService {
       title,
       body,
       details,
+    );
+  }
+
+  // Diagnostic test for the user
+  Future<void> testImmediateNotification() async {
+    await showImmediateNotification(
+      title: '🔔 Test Notification',
+      body: 'If you see this, your notifications are working perfectly!',
     );
   }
 
