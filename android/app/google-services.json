@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "326808345238",
+    "project_id": "delox-16a32",
+    "storage_bucket": "delox-16a32.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:326808345238:android:78e796626b68c5385c80b7",
+        "android_client_info": {
+          "package_name": "com.example.delox_d"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "326808345238-qfhqcq8kf23mt40cljgc2g6iujgpq9e3.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.delox_d",
+            "certificate_hash": "043ac2fcef8359dc3d80f1a03dce29d8181fe507"
+          }
+        },
+        {
+          "client_id": "326808345238-tk1hcto011sc93vuqv7md1l83vbhmknl.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB16mRyoBT1JnM29G7EDTRUl6-fFkSFT9M"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "326808345238-tk1hcto011sc93vuqv7md1l83vbhmknl.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
