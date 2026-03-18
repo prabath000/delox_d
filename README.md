@@ -70,12 +70,12 @@ DELOX uses a structured relational database for performance and reliability.
 
 ## Tech Stack
 
-Framework: Flutter 3.x
-Language: Dart 3.x
-State Management: Provider
-Database: SQLite (sqflite)
-Authentication: Google Sign-In / Email
-Notifications: Flutter Local Notifications
+* Framework: Flutter 3.x
+* Language: Dart 3.x
+* State Management: Provider
+* Database: SQLite (sqflite)
+* Authentication: Google Sign-In / Email
+* Notifications: Flutter Local Notifications
 
 
 ## Purpose
