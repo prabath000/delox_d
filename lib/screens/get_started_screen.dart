@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../app_theme.dart';
 import 'login_screen.dart';
 
 class GetStartedScreen extends StatelessWidget {
@@ -10,7 +10,7 @@ class GetStartedScreen extends StatelessWidget {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool('hasSeenGetStarted', true);
     if (context.mounted) {
-      Navigator.pushReplacement(
+      Navigator.push(
         context,
         MaterialPageRoute(builder: (context) => const LoginScreen()),
       );
@@ -20,111 +20,78 @@ class GetStartedScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    
+    final size = MediaQuery.of(context).size;
+    final isDark = theme.brightness == Brightness.dark;
+
+    // Button adapts: dark bg = white button; light bg = black button
+    final btnColor = isDark ? Colors.white : const Color(0xFF1A1A1A);
+    final btnTextColor = isDark ? const Color(0xFF1A1A1A) : Colors.white;
+
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
-      body: Container(
-        width: double.infinity,
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              theme.primaryColor.withValues(alpha: 0.1),
-              theme.scaffoldBackgroundColor,
-            ],
-          ),
-        ),
-        child: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 32.0),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Spacer(flex: 2),
-                // Logo
-                Hero(
-                  tag: 'app_logo',
-                  child: Container(
-                    padding: const EdgeInsets.all(24),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      shape: BoxShape.circle,
-                      boxShadow: [
-                        BoxShadow(
-                          color: theme.primaryColor.withValues(alpha: 0.1),
-                          blurRadius: 40,
-                          spreadRadius: 10,
-                        ),
-                      ],
-                    ),
+      body: SafeArea(
+        child: Column(
+          children: [
+            // Center: Logo + subtitle
+            Expanded(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Hero(
+                    tag: 'app_logo',
                     child: Image.asset(
                       'assets/images/logo.png',
-                      height: 120,
+                      height: 72,
                       fit: BoxFit.contain,
                       errorBuilder: (context, error, stackTrace) {
-                         return Icon(Icons.rocket_launch_rounded, size: 80, color: theme.primaryColor);
+                        return Icon(Icons.rocket_launch_rounded, size: 64, color: theme.primaryColor);
                       },
                     ),
                   ),
-                ),
-                const SizedBox(height: 48),
-                // Title
-                Text(
-                  'DELOX',
-                  style: theme.textTheme.displayLarge?.copyWith(
-                    letterSpacing: 4,
-                    fontWeight: FontWeight.w900,
-                    fontSize: 40,
+                  const SizedBox(height: 18),
+                  Text(
+                    'Your smart daily productivity assistant.',
+                    style: GoogleFonts.poppins(
+                      fontSize: 13,
+                      color: theme.textTheme.bodyMedium?.color,
+                      fontWeight: FontWeight.w400,
+                    ),
+                    textAlign: TextAlign.center,
                   ),
-                ),
-                const SizedBox(height: 16),
-                // Subtitle
-                Text(
-                  'Manage your tasks with elegance and precision.',
-                  textAlign: TextAlign.center,
-                  style: theme.textTheme.bodyLarge?.copyWith(
-                    color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.6),
-                    fontSize: 18,
-                  ),
-                ),
-                const Spacer(flex: 3),
-                // Get Started Button
-                SizedBox(
-                  width: double.infinity,
+                ],
+              ),
+            ),
+
+            // Bottom button
+            Padding(
+              padding: EdgeInsets.fromLTRB(32, 0, 32, size.height * 0.06),
+              child: Center(
+                child: SizedBox(
+                  width: 180,
+                  height: 50,
                   child: ElevatedButton(
                     onPressed: () => _completeGetStarted(context),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: theme.primaryColor,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 20),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      elevation: 8,
-                      shadowColor: theme.primaryColor.withValues(alpha: 0.4),
+                      backgroundColor: btnColor,
+                      foregroundColor: btnTextColor,
+                      elevation: 4,
+                      shadowColor: Colors.black26,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(50)),
                     ),
-                    child: const Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          'GET STARTED',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            letterSpacing: 1.5,
-                          ),
-                        ),
-                        SizedBox(width: 12),
-                        Icon(Icons.arrow_forward_rounded, size: 20),
-                      ],
+                    child: Text(
+                      'GET STARTED',
+                      style: GoogleFonts.poppins(
+                        fontSize: 13,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: 1.2,
+                        color: btnTextColor,
+                      ),
                     ),
                   ),
                 ),
-                const SizedBox(height: 40),
-              ],
+              ),
             ),
-          ),
+          ],
         ),
       ),
     );

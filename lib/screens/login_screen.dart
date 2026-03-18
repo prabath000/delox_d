@@ -29,122 +29,119 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final btnColor = isDark ? Colors.white : const Color(0xFF1A1A1A);
+    final btnTextColor = isDark ? const Color(0xFF1A1A1A) : Colors.white;
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 24.0),
+          padding: const EdgeInsets.symmetric(horizontal: 28.0),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              const SizedBox(height: 40),
-              GestureDetector(
-                onTap: () => Navigator.pop(context),
-                child: Container(
-                  width: 44,
-                  height: 44,
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: AppColors.border.withValues(alpha: 0.5)),
+              const SizedBox(height: 20),
+              // Back button aligned left
+              Align(
+                alignment: Alignment.centerLeft,
+                child: GestureDetector(
+                  onTap: () => Navigator.pop(context),
+                  child: Container(
+                    width: 44,
+                    height: 44,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: AppColors.border.withValues(alpha: 0.5)),
+                    ),
+                    child: Icon(Icons.arrow_back_ios_new_rounded, color: theme.primaryColor, size: 20),
                   ),
-                  child: Icon(Icons.arrow_back_ios_new_rounded, color: theme.primaryColor, size: 20),
                 ),
               ),
-              const SizedBox(height: 20),
-              // Logo
+              const SizedBox(height: 32),
+              // Logo centered
               Hero(
                 tag: 'app_logo',
-                child: Container(
-                  margin: const EdgeInsets.only(bottom: 16),
-                  child: Image.asset(
-                    'assets/images/logo.png',
-                    height: 50,
-                    fit: BoxFit.contain,
-                    errorBuilder: (context, error, stackTrace) {
-                       return Icon(Icons.rocket_launch_rounded, size: 40, color: theme.primaryColor);
-                    },
-                  ),
+                child: Image.asset(
+                  'assets/images/logo.png',
+                  height: 72,
+                  fit: BoxFit.contain,
+                  errorBuilder: (context, error, stackTrace) {
+                    return Icon(Icons.rocket_launch_rounded, size: 64, color: theme.primaryColor);
+                  },
                 ),
               ),
+              const SizedBox(height: 12),
               Text(
                 'DELOX',
                 style: theme.textTheme.titleSmall?.copyWith(
                   color: theme.primaryColor,
                   fontWeight: FontWeight.bold,
-                  letterSpacing: 2.0,
+                  letterSpacing: 3.0,
+                  fontSize: 13,
                 ),
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: 28),
               Text(
-                'Welcome to Delox',
-                style: theme.textTheme.displayLarge?.copyWith(fontSize: 28),
+                'Welcome back',
+                style: theme.textTheme.displayLarge?.copyWith(fontSize: 30, fontWeight: FontWeight.bold),
+                textAlign: TextAlign.center,
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: 6),
               Text(
-                'Your Smart Daily Productivity Assistant.',
-                style: theme.textTheme.bodyMedium,
+                'Please enter your details to sign in',
+                style: theme.textTheme.bodyMedium?.copyWith(color: AppColors.textSecondary),
+                textAlign: TextAlign.center,
               ),
-              const SizedBox(height: 48),
-              _buildLabel('Email Address', theme),
+              const SizedBox(height: 36),
+              // Email field
+              _buildLabel('Your Email Address', theme),
               const SizedBox(height: 8),
-              _buildTextField('youremail@gmail.com', controller: _emailController),
-              const SizedBox(height: 24),
+              _buildTextField(
+                'Your Email Address',
+                controller: _emailController,
+                keyboardType: TextInputType.emailAddress,
+                prefixIcon: Icon(Icons.email_outlined, color: AppColors.textSecondary, size: 20),
+              ),
+              const SizedBox(height: 20),
+              // Password field
               _buildLabel('Password', theme),
               const SizedBox(height: 8),
               _buildTextField(
-                '••••••••••••', 
-                obscureText: _obscurePassword, 
+                '••••••••••••',
+                obscureText: _obscurePassword,
                 controller: _passwordController,
+                prefixIcon: Icon(Icons.lock_outline_rounded, color: AppColors.textSecondary, size: 20),
                 suffixIcon: IconButton(
-                  icon: Icon(_obscurePassword ? Icons.visibility_off : Icons.visibility, color: AppColors.textSecondary, size: 20),
+                  icon: Icon(
+                    _obscurePassword ? Icons.visibility_off_outlined : Icons.visibility_outlined,
+                    color: AppColors.textSecondary,
+                    size: 20,
+                  ),
                   onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
                 ),
               ),
-              const SizedBox(height: 40),
-              ElevatedButton(
-                onPressed: _isLoading ? null : () async {
-                  final email = _emailController.text.trim();
-                  final password = _passwordController.text;
-
-                  if (email.isEmpty || password.isEmpty) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Please fill all fields')),
-                    );
-                    return;
-                  }
-
-                  setState(() => _isLoading = true);
-                  try {
-                    final result = await context.read<UserProvider>().login(email, password);
-                    if (result == "success") {
-                      final userId = context.read<UserProvider>().currentUser!.email;
-                      // Load tasks for this user
-                      await context.read<TaskProvider>().loadTasksForUser(userId);
-                      
-                      if (mounted) {
-                        Navigator.of(context).pushReplacement(
-                          MaterialPageRoute(builder: (context) => const MainScaffold()),
-                        );
-                      }
-                    } else {
-                      if (mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text(result)),
-                        );
-                      }
-                    }
-                  } finally {
-                    if (mounted) {
-                      setState(() => _isLoading = false);
-                    }
-                  }
-                },
-                child: _isLoading 
-                    ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2)) 
-                    : const Text('LOGIN'),
+              const SizedBox(height: 32),
+              // Login button
+              SizedBox(
+                width: double.infinity,
+                height: 44,
+                child: ElevatedButton(
+                  onPressed: _isLoading ? null : _handleLogin,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: btnColor,
+                    foregroundColor: btnTextColor,
+                    elevation: 4,
+                    shadowColor: Colors.black26,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(50)),
+                  ),
+                  child: _isLoading
+                      ? SizedBox(height: 18, width: 18, child: CircularProgressIndicator(color: btnTextColor, strokeWidth: 2))
+                      : Text('SIGN IN', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, letterSpacing: 1.2, color: btnTextColor)),
+                ),
               ),
-              const SizedBox(height: 30),
+              const SizedBox(height: 28),
+              // OR divider
               Row(
                 children: [
                   Expanded(child: Divider(color: AppColors.border.withValues(alpha: 0.5))),
@@ -155,61 +152,49 @@ class _LoginScreenState extends State<LoginScreen> {
                   Expanded(child: Divider(color: AppColors.border.withValues(alpha: 0.5))),
                 ],
               ),
-              const SizedBox(height: 30),
-              OutlinedButton(
-                onPressed: _isLoading ? null : () async {
-                  setState(() => _isLoading = true);
-                  try {
-                    final result = await context.read<UserProvider>().signInWithGoogle();
-                    if (result == "success") {
-                      final userId = context.read<UserProvider>().currentUser!.email;
-                      await context.read<TaskProvider>().loadTasksForUser(userId);
-                      if (mounted) {
-                        Navigator.of(context).pushReplacement(
-                          MaterialPageRoute(builder: (context) => const MainScaffold()),
-                        );
-                      }
-                    } else if (result != "cancelled") {
-                      if (mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(result)));
-                      }
-                    }
-                  } finally {
-                    if (mounted) setState(() => _isLoading = false);
-                  }
-                },
-                style: OutlinedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  side: BorderSide(color: AppColors.border.withValues(alpha: 0.5)),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                  backgroundColor: Colors.white,
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Icon(Icons.login, color: AppColors.indigo, size: 20),
-                    const SizedBox(width: 12),
-                    Text('CONTINUE WITH GOOGLE', style: TextStyle(color: theme.textTheme.bodyLarge?.color, fontWeight: FontWeight.bold, letterSpacing: 1.1)),
-                  ],
+              const SizedBox(height: 28),
+              // Google button
+              SizedBox(
+                width: double.infinity,
+                height: 54,
+                child: OutlinedButton(
+                  onPressed: _isLoading ? null : _handleGoogleSignIn,
+                  style: OutlinedButton.styleFrom(
+                    side: BorderSide(color: theme.dividerColor.withValues(alpha: 0.5)),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                    backgroundColor: theme.colorScheme.surface,
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      _GoogleIcon(),
+                      const SizedBox(width: 12),
+                      Text(
+                        'Continue with Google',
+                        style: TextStyle(
+                          color: theme.textTheme.bodyLarge?.color,
+                          fontWeight: FontWeight.w600,
+                          fontSize: 15,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
-              const SizedBox(height: 30),
+              const SizedBox(height: 32),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Text('Don\'t have an account? ', style: TextStyle(color: AppColors.textSecondary)),
+                  const Text("Don't have an account? ", style: TextStyle(color: AppColors.textSecondary)),
                   TextButton(
                     onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => const RegisterScreen()),
-                      );
+                      Navigator.push(context, MaterialPageRoute(builder: (context) => const RegisterScreen()));
                     },
                     child: Text('Sign Up', style: TextStyle(color: theme.primaryColor, fontWeight: FontWeight.bold)),
                   ),
                 ],
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 24),
             ],
           ),
         ),
@@ -217,19 +202,144 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  Widget _buildLabel(String label, ThemeData theme) {
-    return Text(label, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: theme.textTheme.bodyLarge?.color));
+  Future<void> _handleLogin() async {
+    final email = _emailController.text.trim();
+    final password = _passwordController.text;
+    if (email.isEmpty || password.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please fill all fields')));
+      return;
+    }
+    setState(() => _isLoading = true);
+    try {
+      final result = await context.read<UserProvider>().login(email, password);
+      if (result == "success") {
+        final userId = context.read<UserProvider>().currentUser!.email;
+        await context.read<TaskProvider>().loadTasksForUser(userId);
+        if (mounted) {
+          Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => const MainScaffold()));
+        }
+      } else {
+        if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(result)));
+      }
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
   }
 
-  Widget _buildTextField(String hint, {bool obscureText = false, Widget? suffixIcon, TextInputType? keyboardType, TextEditingController? controller}) {
+  Future<void> _handleGoogleSignIn() async {
+    setState(() => _isLoading = true);
+    try {
+      final result = await context.read<UserProvider>().signInWithGoogle();
+      if (result == "success") {
+        final userId = context.read<UserProvider>().currentUser!.email;
+        await context.read<TaskProvider>().loadTasksForUser(userId);
+        if (mounted) {
+          Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => const MainScaffold()));
+        }
+      } else if (result != "cancelled") {
+        if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(result)));
+      }
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  Widget _buildLabel(String label, ThemeData theme) {
+    return Align(
+      alignment: Alignment.centerLeft,
+      child: Text(label, style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14, color: theme.textTheme.bodyLarge?.color)),
+    );
+  }
+
+  Widget _buildTextField(String hint, {
+    bool obscureText = false,
+    Widget? suffixIcon,
+    Widget? prefixIcon,
+    TextInputType? keyboardType,
+    TextEditingController? controller,
+  }) {
     return TextField(
       controller: controller,
       obscureText: obscureText,
       keyboardType: keyboardType,
       decoration: InputDecoration(
         hintText: hint,
+        prefixIcon: prefixIcon,
         suffixIcon: suffixIcon,
       ),
     );
   }
+}
+
+/// Real Google G logo via CustomPaint (stroke arcs + horizontal bar)
+class _GoogleIcon extends StatelessWidget {
+  const _GoogleIcon();
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: 24,
+      height: 24,
+      child: CustomPaint(painter: _GoogleGPainter()),
+    );
+  }
+}
+
+class _GoogleGPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final double s = size.shortestSide;
+    final Offset center = Offset(s / 2, s / 2);
+    const double pi = 3.14159265358979;
+
+    // Ring parameters
+    final double outer = s / 2;
+    final double inner = outer * 0.58;
+    final double mid = (outer + inner) / 2;   // stroke drawn at this radius
+    final double sw = outer - inner;           // stroke width = ring thickness
+
+    final Paint paint = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = sw
+      ..strokeCap = StrokeCap.butt;
+
+    final Rect rect = Rect.fromCircle(center: center, radius: mid);
+
+    // Notch (the G opening) is on the right, spanning from -30° to +30°
+    // Visible ring = 300°, going clockwise from +30° (pi/6) back to -30°(-pi/6)
+
+    const double notchBottom = pi / 6;          // 30°  — arc starts here
+    const double greenSweep  = pi * 2 / 3;      // 120° — bottom right
+    const double yellowSweep = pi * 5 / 12;     // 75°  — lower left
+    const double redSweep    = pi * 7 / 12;     // 105° — top & upper left
+    // total visible: 120+75+105 = 300° = pi*300/180 ✓  (60° gap is the notch)
+
+    // Green (bottom-right → bottom → bottom-left)
+    paint.color = const Color(0xFF34A853);
+    canvas.drawArc(rect, notchBottom, greenSweep, false, paint);
+
+    // Yellow (lower-left)
+    paint.color = const Color(0xFFFBBC05);
+    canvas.drawArc(rect, notchBottom + greenSweep, yellowSweep, false, paint);
+
+    // Red (left → top → upper-right)
+    paint.color = const Color(0xFFEA4335);
+    canvas.drawArc(rect, notchBottom + greenSweep + yellowSweep, redSweep, false, paint);
+
+    // Blue horizontal bar — from horizontal center to right edge
+    // Clip so it stays within the outer circle
+    canvas.save();
+    canvas.clipPath(Path()..addOval(Rect.fromCircle(center: center, radius: outer)));
+    paint
+      ..style = PaintingStyle.fill
+      ..color = const Color(0xFF4285F4);
+    canvas.drawRect(
+      Rect.fromLTWH(center.dx, center.dy - sw / 2, outer, sw),
+      paint,
+    );
+    canvas.restore();
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter old) => false;
 }

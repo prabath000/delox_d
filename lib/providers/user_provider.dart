@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'dart:io';
 import '../services/database_service.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -37,7 +38,11 @@ class User {
 
 class UserProvider with ChangeNotifier {
   User? _currentUser;
-  final GoogleSignIn _googleSignIn = GoogleSignIn();
+  final GoogleSignIn _googleSignIn = GoogleSignIn(
+    clientId: Platform.isIOS 
+      ? '326808345238-1lp0uag72hdjbjf6c3hqsr5tsl365n3v.apps.googleusercontent.com' 
+      : null,
+  );
   static const String _userEmailKey = 'user_email';
   static const String _userPhotoKey = 'user_photo';
   static const String _userNameKey = 'user_name';

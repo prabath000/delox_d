@@ -6,6 +6,7 @@ import '../providers/user_provider.dart';
 import '../providers/theme_provider.dart';
 import '../providers/task_provider.dart';
 import 'login_screen.dart';
+import 'get_started_screen.dart';
 import '../services/notification_service.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -36,10 +37,7 @@ class ProfileScreen extends StatelessWidget {
           appBar: AppBar(
             backgroundColor: Colors.transparent,
             elevation: 0,
-            leading: IconButton(
-              icon: Icon(Icons.arrow_back_ios_new_rounded, color: theme.textTheme.bodyLarge?.color, size: 20),
-              onPressed: () => Navigator.of(context).pop(),
-            ),
+            automaticallyImplyLeading: false,
             title: Text('Profile', style: TextStyle(color: theme.textTheme.bodyLarge?.color, fontWeight: FontWeight.bold)),
             centerTitle: true,
           ),
@@ -329,7 +327,7 @@ class ProfileScreen extends StatelessWidget {
                                 Navigator.pop(ctx);
                                 userProvider.logout();
                                 Navigator.of(context).pushAndRemoveUntil(
-                                  MaterialPageRoute(builder: (_) => const LoginScreen()),
+                                  MaterialPageRoute(builder: (_) => const GetStartedScreen()),
                                   (route) => false,
                                 );
                               },
