@@ -88,4 +88,3 @@ Prabath Thilina
 
 ---
 
-If you like this project, consider starring the repository.
